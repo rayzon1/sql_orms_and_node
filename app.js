@@ -1,5 +1,5 @@
 const db = require("./db");
-const { Movie } = db.models;
+const { Movie, Person } = db.models;
 
 db.sequelize
   .authenticate()
@@ -10,28 +10,50 @@ db.sequelize
     console.error("Unable to connect to the database:", err);
   });
 
+ 
 (async () => {
   await db.sequelize.sync({ force: true });
 
-  try {
+  try{
+
+    Promise.all([
+      Person.create({
+        firstName: "Jack",
+        lastName: "Ryan"
+      }),
+      Person.create({
+        firstName: "Tom",
+        lastName: "Cruise"
+      })
+    ])
+
     await Movie.create({
-      title: "Toy Story",
-      description: "shit movie, shit actors",
-      year: 1986
+      title: "Toy Story 3",
+      runtime: 81,
+      releaseDate: "1995-11-22",
+      isAvailableOnVhs: true
     });
 
     await Movie.create({
       title: "The Dark Knight",
-      description: "good movie, great actors",
-      year: 1999
+      runtime: 81,
+      releaseDate: "2018-09-12",
+      isAvailableOnVhs: false
     });
 
     await Movie.create({
-      title: "Alien",
-      description: "classic movie with ok actors",
-      year: 1985
+      title: "Terminator 2: Judgement day",
+      runtime: 81,
+      releaseDate: "1985-10-11",
+      isAvailableOnVhs: true
     });
+
   } catch (error) {
-    console.error("Error connecting to the database: ", error);
+    if (error.name === "SequelizeValidationError") {
+      const errors = error.errors.map(err => err.message);
+      console.log("Validation Errors", errors);
+    } else {
+      throw error;
+    }
   }
 })();
